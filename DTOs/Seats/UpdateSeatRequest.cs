@@ -1,0 +1,18 @@
+﻿
+using System.ComponentModel.DataAnnotations;
+
+namespace TicketBookingApplication.DTOs.Seats;
+
+public class UpdateSeatRequest
+{
+    [Required]
+    [StringLength(5)]
+    public string RowName { get; set; } = string.Empty;
+
+    [Range(1, int.MaxValue)]
+    public int SeatNumber { get; set; }
+
+    [Required]
+    [StringLength(30)]
+    public string SeatType { get; set; } = string.Empty;
+}

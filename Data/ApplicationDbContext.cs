@@ -12,12 +12,16 @@ public class ApplicationDbContext : DbContext
     {
     }
 
+    // DbSets
     public DbSet<Movie> Movies { get; set; }
+
+    public DbSet<Theatre> Theatres { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
+        // Movie Configuration
         modelBuilder.Entity<Movie>(entity =>
         {
             entity.ToTable("Movies", table =>
@@ -53,6 +57,25 @@ public class ApplicationDbContext : DbContext
             entity.Property(m => m.Genre)
                   .IsRequired()
                   .HasMaxLength(50);
+        });
+
+        // Theatre Configuration
+        modelBuilder.Entity<Theatre>(entity =>
+        {
+            entity.ToTable("Theatres");
+
+            entity.HasKey(t => t.TheatreId);
+
+            entity.Property(t => t.TheatreId)
+                  .ValueGeneratedOnAdd();
+
+            entity.Property(t => t.Name)
+                  .IsRequired()
+                  .HasMaxLength(150);
+
+            entity.Property(t => t.Location)
+                  .IsRequired()
+                  .HasMaxLength(200);
         });
     }
 }

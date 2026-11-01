@@ -17,11 +17,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Register Repository
+// Register Repositories
 builder.Services.AddScoped<IMovieRepository, MovieRepository>();
+builder.Services.AddScoped<ITheatreRepository, TheatreRepository>();
 
-// Register Service
+// Register Services
 builder.Services.AddScoped<IMovieService, MovieService>();
+builder.Services.AddScoped<ITheatreService, TheatreService>();
 
 var app = builder.Build();
 

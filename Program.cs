@@ -21,11 +21,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped<IMovieRepository, MovieRepository>();
 builder.Services.AddScoped<ITheatreRepository, TheatreRepository>();
 builder.Services.AddScoped<IScreenRepository, ScreenRepository>();
+builder.Services.AddScoped<ISeatRepository, SeatRepository>();
+builder.Services.AddScoped<IShowRepository, ShowRepository>();
 
 // Register Services
 builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<ITheatreService, TheatreService>();
 builder.Services.AddScoped<IScreenService, ScreenService>();
+builder.Services.AddScoped<ISeatService, SeatService>();
+builder.Services.AddScoped<IShowService, ShowService>();
 
 var app = builder.Build();
 

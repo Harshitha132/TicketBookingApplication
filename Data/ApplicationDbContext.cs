@@ -19,6 +19,11 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Screen> Screens { get; set; }
 
+    public DbSet<Seat> Seats { get; set; }
+
+    public DbSet<Show> Shows { get; set; }
+
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -107,5 +112,84 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(s => new { s.TheatreId, s.ScreenName })
                   .IsUnique();
         });
+
+        modelBuilder.Entity<Seat>(entity =>
+        {
+            entity.ToTable("Seats", table =>
+            {
+                table.HasCheckConstraint(
+                    "CK_Seats_SeatNumber",
+                    "[SeatNumber] > 0");
+            });
+
+            entity.HasKey(s => s.SeatId);
+
+            entity.Property(s => s.SeatId)
+                  .ValueGeneratedOnAdd();
+
+            entity.Property(s => s.RowName)
+                  .IsRequired()
+                  .HasMaxLength(5);
+
+            entity.Property(s => s.SeatNumber)
+                  .IsRequired();
+
+            entity.Property(s => s.SeatType)
+                  .IsRequired()
+                  .HasMaxLength(30);
+
+            entity.HasOne(s => s.Screen)
+                  .WithMany(screen => screen.Seats)
+                  .HasForeignKey(s => s.ScreenId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(s => new
+            {
+                s.ScreenId,
+                s.RowName,
+                s.SeatNumber
+            }).IsUnique();
+        });
+
+
+        modelBuilder.Entity<Show>(entity =>
+        {
+            entity.ToTable("Shows", table =>
+            {
+                table.HasCheckConstraint(
+                    "CK_Shows_EndTime",
+                    "[EndTime] > [StartTime]");
+
+                table.HasCheckConstraint(
+                    "CK_Shows_TicketPrice",
+                    "[TicketPrice] >= 0");
+            });
+
+            entity.HasKey(s => s.ShowId);
+
+            entity.Property(s => s.ShowId)
+                  .ValueGeneratedOnAdd();
+
+            entity.Property(s => s.StartTime)
+                  .IsRequired();
+
+            entity.Property(s => s.EndTime)
+                  .IsRequired();
+
+            entity.Property(s => s.TicketPrice)
+                  .HasPrecision(10, 2)
+                  .IsRequired();
+
+            entity.HasOne(s => s.Movie)
+                  .WithMany(m => m.Shows)
+                  .HasForeignKey(s => s.MovieId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(s => s.Screen)
+                  .WithMany(screen => screen.Shows)
+                  .HasForeignKey(s => s.ScreenId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
     }
 }

@@ -18,4 +18,3 @@ public class Screen
     public ICollection<Show> Shows { get; set; } = new List<Show>();
 }
 
-}

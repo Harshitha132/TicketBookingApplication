@@ -18,7 +18,9 @@ public interface IShowService
 
     Task<ShowResponse> CreateAsync(CreateShowRequest request);
 
-    Task<bool> UpdateAsync(int showId, UpdateShowRequest request);
+    Task<bool> UpdateAsync(
+        int showId,
+        UpdateShowRequest request);
 
     Task<bool> DeleteAsync(int showId);
 }

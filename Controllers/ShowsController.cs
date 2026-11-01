@@ -10,10 +10,15 @@ namespace TicketBookingApplication.Controllers;
 public class ShowsController : ControllerBase
 {
     private readonly IShowService _showService;
+    private readonly IShowSeatService _showSeatService;
 
-    public ShowsController(IShowService showService)
+    // Constructor Injection
+    public ShowsController(
+        IShowService showService,
+        IShowSeatService showSeatService)
     {
         _showService = showService;
+        _showSeatService = showSeatService;
     }
 
     // GET: api/shows
@@ -38,7 +43,10 @@ public class ShowsController : ControllerBase
 
         if (show == null)
         {
-            return NotFound(new { message = "Show not found." });
+            return NotFound(new
+            {
+                message = "Show not found."
+            });
         }
 
         return Ok(show);
@@ -62,6 +70,25 @@ public class ShowsController : ControllerBase
         return Ok(shows);
     }
 
+    // GET: api/shows/5/seats
+    [HttpGet("{showId:int}/seats")]
+    public async Task<IActionResult> GetShowSeats(int showId)
+    {
+        try
+        {
+            var seats = await _showSeatService.GetByShowIdAsync(showId);
+
+            return Ok(seats);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(new
+            {
+                message = ex.Message
+            });
+        }
+    }
+
     // POST: api/shows
     [HttpPost]
     public async Task<IActionResult> Create(CreateShowRequest request)
@@ -77,11 +104,17 @@ public class ShowsController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new
+            {
+                message = ex.Message
+            });
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new
+            {
+                message = ex.Message
+            });
         }
     }
 
@@ -97,18 +130,30 @@ public class ShowsController : ControllerBase
 
             if (!updated)
             {
-                return NotFound(new { message = "Show not found." });
+                return NotFound(new
+                {
+                    message = "Show not found."
+                });
             }
 
-            return Ok(new { message = "Show updated successfully." });
+            return Ok(new
+            {
+                message = "Show updated successfully."
+            });
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new
+            {
+                message = ex.Message
+            });
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new
+            {
+                message = ex.Message
+            });
         }
     }
 
@@ -120,9 +165,15 @@ public class ShowsController : ControllerBase
 
         if (!deleted)
         {
-            return NotFound(new { message = "Show not found." });
+            return NotFound(new
+            {
+                message = "Show not found."
+            });
         }
 
-        return Ok(new { message = "Show deleted successfully." });
+        return Ok(new
+        {
+            message = "Show deleted successfully."
+        });
     }
 }

@@ -1,4 +1,6 @@
 ﻿
+using Microsoft.EntityFrameworkCore;
+using TicketBookingApplication.Data;
 using TicketBookingApplication.DTOs.Shows;
 using TicketBookingApplication.Models;
 using TicketBookingApplication.Repositories.Interfaces;
@@ -9,10 +11,17 @@ namespace TicketBookingApplication.Services;
 public class ShowService : IShowService
 {
     private readonly IShowRepository _showRepository;
+    private readonly IShowSeatService _showSeatService;
+    private readonly ApplicationDbContext _context;
 
-    public ShowService(IShowRepository showRepository)
+    public ShowService(
+        IShowRepository showRepository,
+        IShowSeatService showSeatService,
+        ApplicationDbContext context)
     {
         _showRepository = showRepository;
+        _showSeatService = showSeatService;
+        _context = context;
     }
 
     public async Task<ShowResponse?> GetByIdAsync(int showId)
@@ -75,26 +84,49 @@ public class ShowService : IShowService
                 "Another show is already scheduled for this screen during the selected time.");
         }
 
-        var show = new Show
+        await using var transaction =
+            await _context.Database.BeginTransactionAsync();
+
+        try
         {
-            MovieId = request.MovieId,
-            ScreenId = request.ScreenId,
-            StartTime = request.StartTime,
-            EndTime = request.EndTime,
-            TicketPrice = request.TicketPrice
-        };
+            var show = new Show
+            {
+                MovieId = request.MovieId,
+                ScreenId = request.ScreenId,
+                StartTime = request.StartTime,
+                EndTime = request.EndTime,
+                TicketPrice = request.TicketPrice
+            };
 
-        await _showRepository.AddAsync(show);
+            // Step 1: Save the Show
+            await _showRepository.AddAsync(show);
 
-        var createdShow = await _showRepository.GetByIdAsync(show.ShowId);
+            // Step 2: Generate ShowSeat records
+            await _showSeatService.GenerateShowSeatsAsync(
+                show.ShowId,
+                show.ScreenId);
 
-        if (createdShow == null)
-        {
-            throw new InvalidOperationException(
-                "Unable to retrieve the created show.");
+            // Step 3: Retrieve the created Show
+            var createdShow =
+                await _showRepository.GetByIdAsync(show.ShowId);
+
+            if (createdShow == null)
+            {
+                throw new InvalidOperationException(
+                    "Unable to retrieve the created show.");
+            }
+
+            // Step 4: Commit the transaction
+            await transaction.CommitAsync();
+
+            return MapToResponse(createdShow);
         }
-
-        return MapToResponse(createdShow);
+        catch
+        {
+            // Roll back both Show and ShowSeat changes
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     public async Task<bool> UpdateAsync(
@@ -135,19 +167,21 @@ public class ShowService : IShowService
                 "Another show is already scheduled for this screen during the selected time.");
         }
 
-        var updatedShow = new Show
+        existingShow.MovieId = request.MovieId;
+        existingShow.ScreenId = request.ScreenId;
+        existingShow.StartTime = request.StartTime;
+        existingShow.EndTime = request.EndTime;
+        existingShow.TicketPrice = request.TicketPrice;
+        if (existingShow.ScreenId != request.ScreenId)
         {
-            ShowId = showId,
-            MovieId = request.MovieId,
-            ScreenId = request.ScreenId,
-            StartTime = request.StartTime,
-            EndTime = request.EndTime,
-            TicketPrice = request.TicketPrice
-        };
+            throw new InvalidOperationException(
+                "Changing the screen of an existing show is not allowed.");
+        }
 
-        await _showRepository.UpdateAsync(updatedShow);
+        await _showRepository.UpdateAsync(existingShow);
 
         return true;
+       
     }
 
     public async Task<bool> DeleteAsync(int showId)

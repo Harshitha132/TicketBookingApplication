@@ -19,4 +19,6 @@ public class Show
     public Movie? Movie { get; set; }
 
     public Screen? Screen { get; set; }
+    public ICollection<ShowSeat> ShowSeats { get; set; }
+    = new List<ShowSeat>();
 }

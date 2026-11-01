@@ -17,6 +17,8 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Theatre> Theatres { get; set; }
 
+    public DbSet<Screen> Screens { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -76,6 +78,34 @@ public class ApplicationDbContext : DbContext
             entity.Property(t => t.Location)
                   .IsRequired()
                   .HasMaxLength(200);
+        });
+
+        // Screen Configuration
+        modelBuilder.Entity<Screen>(entity =>
+        {
+            entity.ToTable("Screens");
+
+            entity.HasKey(s => s.ScreenId);
+
+            entity.Property(s => s.ScreenId)
+                  .ValueGeneratedOnAdd();
+
+            entity.Property(s => s.ScreenName)
+                  .IsRequired()
+                  .HasMaxLength(100);
+
+            entity.Property(s => s.TotalSeats)
+                  .IsRequired();
+
+            // Theatre - Screen relationship
+            entity.HasOne(s => s.Theatre)
+                  .WithMany(t => t.Screens)
+                  .HasForeignKey(s => s.TheatreId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            // A theatre cannot have duplicate screen names
+            entity.HasIndex(s => new { s.TheatreId, s.ScreenName })
+                  .IsUnique();
         });
     }
 }

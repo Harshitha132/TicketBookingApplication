@@ -20,10 +20,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Register Repositories
 builder.Services.AddScoped<IMovieRepository, MovieRepository>();
 builder.Services.AddScoped<ITheatreRepository, TheatreRepository>();
+builder.Services.AddScoped<IScreenRepository, ScreenRepository>();
 
 // Register Services
 builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<ITheatreService, TheatreService>();
+builder.Services.AddScoped<IScreenService, ScreenService>();
 
 var app = builder.Build();
 

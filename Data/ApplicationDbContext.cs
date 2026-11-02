@@ -22,14 +22,22 @@ public class ApplicationDbContext : DbContext
     public DbSet<Seat> Seats { get; set; }
 
     public DbSet<Show> Shows { get; set; }
+
     public DbSet<ShowSeat> ShowSeats { get; set; }
+
+    public DbSet<Booking> Bookings { get; set; }
+
+    public DbSet<BookingSeat> BookingSeats { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Movie Configuration
+        // =========================================
+        // 1. MOVIE CONFIGURATION
+        // =========================================
+
         modelBuilder.Entity<Movie>(entity =>
         {
             entity.ToTable("Movies", table =>
@@ -67,7 +75,11 @@ public class ApplicationDbContext : DbContext
                   .HasMaxLength(50);
         });
 
-        // Theatre Configuration
+
+        // =========================================
+        // 2. THEATRE CONFIGURATION
+        // =========================================
+
         modelBuilder.Entity<Theatre>(entity =>
         {
             entity.ToTable("Theatres");
@@ -86,7 +98,11 @@ public class ApplicationDbContext : DbContext
                   .HasMaxLength(200);
         });
 
-        // Screen Configuration
+
+        // =========================================
+        // 3. SCREEN CONFIGURATION
+        // =========================================
+
         modelBuilder.Entity<Screen>(entity =>
         {
             entity.ToTable("Screens");
@@ -98,8 +114,9 @@ public class ApplicationDbContext : DbContext
 
             entity.Property(s => s.ScreenName)
                   .IsRequired()
-                  .HasMaxLength(100);
+                  .HasMaxLength(50);
 
+            // Retained from your existing implementation
             entity.Property(s => s.TotalSeats)
                   .IsRequired();
 
@@ -109,10 +126,18 @@ public class ApplicationDbContext : DbContext
                   .HasForeignKey(s => s.TheatreId)
                   .OnDelete(DeleteBehavior.Restrict);
 
-            // A theatre cannot have duplicate screen names
-            entity.HasIndex(s => new { s.TheatreId, s.ScreenName })
-                  .IsUnique();
+            // Unique screen name within a theatre
+            entity.HasIndex(s => new
+            {
+                s.TheatreId,
+                s.ScreenName
+            }).IsUnique();
         });
+
+
+        // =========================================
+        // 4. SEAT CONFIGURATION
+        // =========================================
 
         modelBuilder.Entity<Seat>(entity =>
         {
@@ -139,11 +164,13 @@ public class ApplicationDbContext : DbContext
                   .IsRequired()
                   .HasMaxLength(30);
 
+            // Screen - Seat relationship
             entity.HasOne(s => s.Screen)
                   .WithMany(screen => screen.Seats)
                   .HasForeignKey(s => s.ScreenId)
                   .OnDelete(DeleteBehavior.Restrict);
 
+            // Prevent duplicate seat positions within a screen
             entity.HasIndex(s => new
             {
                 s.ScreenId,
@@ -152,6 +179,10 @@ public class ApplicationDbContext : DbContext
             }).IsUnique();
         });
 
+
+        // =========================================
+        // 5. SHOW CONFIGURATION
+        // =========================================
 
         modelBuilder.Entity<Show>(entity =>
         {
@@ -181,16 +212,23 @@ public class ApplicationDbContext : DbContext
                   .HasPrecision(10, 2)
                   .IsRequired();
 
+            // Movie - Show relationship
             entity.HasOne(s => s.Movie)
                   .WithMany(m => m.Shows)
                   .HasForeignKey(s => s.MovieId)
                   .OnDelete(DeleteBehavior.Restrict);
 
+            // Screen - Show relationship
             entity.HasOne(s => s.Screen)
                   .WithMany(screen => screen.Shows)
                   .HasForeignKey(s => s.ScreenId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
+
+
+        // =========================================
+        // 6. SHOWSEAT CONFIGURATION
+        // =========================================
 
         modelBuilder.Entity<ShowSeat>(entity =>
         {
@@ -210,20 +248,124 @@ public class ApplicationDbContext : DbContext
                   .IsRequired()
                   .HasMaxLength(20);
 
+            // Show - ShowSeat relationship
             entity.HasOne(ss => ss.Show)
                   .WithMany(s => s.ShowSeats)
                   .HasForeignKey(ss => ss.ShowId)
                   .OnDelete(DeleteBehavior.Restrict);
 
+            // Seat - ShowSeat relationship
             entity.HasOne(ss => ss.Seat)
                   .WithMany()
                   .HasForeignKey(ss => ss.SeatId)
                   .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasIndex(ss => new { ss.ShowId, ss.SeatId })
+            // A seat can appear only once per show
+            entity.HasIndex(ss => new
+            {
+                ss.ShowId,
+                ss.SeatId
+            }).IsUnique();
+        });
+
+
+        // =========================================
+        // 7. BOOKING CONFIGURATION
+        // =========================================
+
+        modelBuilder.Entity<Booking>(entity =>
+        {
+            entity.ToTable("Bookings", table =>
+            {
+                table.HasCheckConstraint(
+                    "CK_Bookings_TotalAmount",
+                    "[TotalAmount] >= 0");
+
+                table.HasCheckConstraint(
+                    "CK_Bookings_Status",
+                    "[Status] IN ('Confirmed', 'Cancelled')");
+            });
+
+            entity.HasKey(b => b.BookingId);
+
+            entity.Property(b => b.BookingId)
+                  .ValueGeneratedOnAdd();
+
+            entity.Property(b => b.BookingReference)
+                  .IsRequired()
+                  .HasMaxLength(30);
+
+            entity.Property(b => b.CustomerName)
+                  .IsRequired()
+                  .HasMaxLength(100);
+
+            entity.Property(b => b.CustomerEmail)
+                  .IsRequired()
+                  .HasMaxLength(150);
+
+            entity.Property(b => b.CustomerPhone)
+                  .IsRequired()
+                  .HasMaxLength(15);
+
+            entity.Property(b => b.BookingDate)
+                  .IsRequired();
+
+            entity.Property(b => b.TotalAmount)
+                  .HasPrecision(10, 2)
+                  .IsRequired();
+
+            entity.Property(b => b.Status)
+                  .IsRequired()
+                  .HasMaxLength(20);
+
+            // Show - Booking relationship
+            entity.HasOne(b => b.Show)
+                  .WithMany()
+                  .HasForeignKey(b => b.ShowId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            // Booking - BookingSeat relationship
+            entity.HasMany(b => b.BookingSeats)
+                  .WithOne(bs => bs.Booking)
+                  .HasForeignKey(bs => bs.BookingId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            // Unique booking reference
+            entity.HasIndex(b => b.BookingReference)
                   .IsUnique();
         });
 
 
+        // =========================================
+        // 8. BOOKINGSEAT CONFIGURATION
+        // =========================================
+
+        modelBuilder.Entity<BookingSeat>(entity =>
+        {
+            entity.ToTable("BookingSeats", table =>
+            {
+                table.HasCheckConstraint(
+                    "CK_BookingSeats_Price",
+                    "[Price] >= 0");
+            });
+
+            entity.HasKey(bs => bs.BookingSeatId);
+
+            entity.Property(bs => bs.BookingSeatId)
+                  .ValueGeneratedOnAdd();
+
+            entity.Property(bs => bs.Price)
+                  .HasPrecision(10, 2)
+                  .IsRequired();
+
+            // Seat - BookingSeat relationship
+            entity.HasOne(bs => bs.Seat)
+                  .WithMany()
+                  .HasForeignKey(bs => bs.SeatId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+
+        base.OnModelCreating(modelBuilder);
     }
 }

@@ -1,9 +1,11 @@
 ﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketBookingApplication.DTOs.Shows;
 using TicketBookingApplication.Services.Interfaces;
 
 namespace TicketBookingApplication.Controllers;
+
 
 [ApiController]
 [Route("api/shows")]
@@ -23,6 +25,7 @@ public class ShowsController : ControllerBase
 
     // GET: api/shows
     // Optional filters: date, movieId, theatreId
+    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> GetAll(
         [FromQuery] DateTime? date,
@@ -36,6 +39,7 @@ public class ShowsController : ControllerBase
     }
 
     // GET: api/shows/5
+    [AllowAnonymous]
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -53,6 +57,7 @@ public class ShowsController : ControllerBase
     }
 
     // GET: api/shows/movie/2
+    [AllowAnonymous]
     [HttpGet("movie/{movieId:int}")]
     public async Task<IActionResult> GetByMovieId(int movieId)
     {
@@ -62,6 +67,7 @@ public class ShowsController : ControllerBase
     }
 
     // GET: api/shows/theatre/1
+    [AllowAnonymous]
     [HttpGet("theatre/{theatreId:int}")]
     public async Task<IActionResult> GetByTheatreId(int theatreId)
     {
@@ -71,6 +77,7 @@ public class ShowsController : ControllerBase
     }
 
     // GET: api/shows/5/seats
+    [AllowAnonymous]
     [HttpGet("{showId:int}/seats")]
     public async Task<IActionResult> GetShowSeats(int showId)
     {
@@ -90,6 +97,7 @@ public class ShowsController : ControllerBase
     }
 
     // POST: api/shows
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<IActionResult> Create(CreateShowRequest request)
     {
@@ -119,6 +127,7 @@ public class ShowsController : ControllerBase
     }
 
     // PUT: api/shows/5
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(
         int id,
@@ -158,6 +167,7 @@ public class ShowsController : ControllerBase
     }
 
     // DELETE: api/shows/5
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

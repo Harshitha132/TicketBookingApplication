@@ -1,17 +1,20 @@
 ﻿
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TicketBookingApplication.Models;
 
 namespace TicketBookingApplication.Data;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext
+    : IdentityDbContext<ApplicationUser, IdentityRole, string>
 {
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
     }
-
+        
     // DbSets
     public DbSet<Movie> Movies { get; set; }
 
@@ -33,6 +36,13 @@ public class ApplicationDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<ApplicationUser>();
+        modelBuilder.Entity<IdentityRole>();
+        modelBuilder.Entity<IdentityUserClaim<string>>();
+        modelBuilder.Entity<IdentityUserRole<string>>();
+        modelBuilder.Entity<IdentityUserLogin<string>>();
+        modelBuilder.Entity<IdentityRoleClaim<string>>();
+        modelBuilder.Entity<IdentityUserToken<string>>();
 
         // =========================================
         // 1. MOVIE CONFIGURATION
@@ -366,6 +376,6 @@ public class ApplicationDbContext : DbContext
         });
 
 
-        base.OnModelCreating(modelBuilder);
+       
     }
 }

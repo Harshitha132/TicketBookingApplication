@@ -5,7 +5,9 @@ namespace TicketBookingApplication.Services.Interfaces;
 
 public interface IBookingService
 {
-    Task<BookingResponse> CreateAsync(CreateBookingRequest request);
+    Task<BookingResponse> CreateAsync(
+        CreateBookingRequest request,
+        string customerEmail);
 
     Task<BookingResponse?> GetByIdAsync(int bookingId);
 

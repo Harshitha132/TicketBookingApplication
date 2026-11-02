@@ -29,11 +29,12 @@ public class BookingService : IBookingService
 
     // Create a new booking
     public async Task<BookingResponse> CreateAsync(
-        CreateBookingRequest request)
+        CreateBookingRequest request,
+        string customerEmail)
     {
         // Validate customer details
         if (string.IsNullOrWhiteSpace(request.CustomerName) ||
-            string.IsNullOrWhiteSpace(request.CustomerEmail) ||
+            string.IsNullOrWhiteSpace(customerEmail) ||
             string.IsNullOrWhiteSpace(request.CustomerPhone))
         {
             throw new ArgumentException(
@@ -103,7 +104,7 @@ public class BookingService : IBookingService
                 BookingReference = GenerateBookingReference(),
                 ShowId = request.ShowId,
                 CustomerName = request.CustomerName.Trim(),
-                CustomerEmail = request.CustomerEmail.Trim(),
+                CustomerEmail = customerEmail.Trim(),
                 CustomerPhone = request.CustomerPhone.Trim(),
                 BookingDate = DateTime.UtcNow,
                 TotalAmount = totalAmount,

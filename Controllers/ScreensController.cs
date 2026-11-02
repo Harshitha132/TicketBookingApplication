@@ -1,10 +1,12 @@
 ﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketBookingApplication.DTOs.Screens;
 using TicketBookingApplication.Services.Interfaces;
 
 namespace TicketBookingApplication.Controllers;
 
+[Authorize(Roles = "Admin")]
 [ApiController]
 [Route("api/screens")]
 public class ScreensController : ControllerBase

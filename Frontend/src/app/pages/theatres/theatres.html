@@ -1,0 +1,57 @@
+<section class="theatres-page">
+
+  <div class="theatres-header">
+    <p class="tagline">FIND YOUR CINEMA</p>
+
+    <h1>Explore <span>Theatres</span></h1>
+
+    <p>Discover theatres and enjoy your favourite movies.</p>
+  </div>
+
+  <div class="section-heading">
+    <h2>Available Theatres</h2>
+  </div>
+
+  @if (isLoading) {
+    <p class="message">Loading theatres...</p>
+  }
+  @else if (errorMessage) {
+    <p class="error-message">{{ errorMessage }}</p>
+  }
+  @else if (theatres.length === 0) {
+    <p class="message">No theatres available.</p>
+  }
+  @else {
+    <div class="theatre-grid">
+
+      @for (theatre of theatres; track theatre.theatreId) {
+
+        <div class="theatre-card">
+
+          <div class="theatre-icon">
+            🎭
+          </div>
+
+          <div class="theatre-details">
+
+            <h3>{{ theatre.name }}</h3>
+
+            <p>
+              <span>📍</span>
+              {{ theatre.location }}
+            </p>
+
+            <button class="view-btn">
+              View Shows
+            </button>
+
+          </div>
+
+        </div>
+
+      }
+
+    </div>
+  }
+
+</section>

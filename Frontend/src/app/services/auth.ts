@@ -2,8 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 
-import { LoginRequest, AuthResponse } from '../models/auth';
-
+import {
+  LoginRequest,
+  RegisterRequest,
+  AuthResponse
+} from '../models/auth';
 @Injectable({
   providedIn: 'root'
 })
@@ -25,7 +28,18 @@ export class AuthService {
       })
     );
   }
-
+// Register
+register(request: RegisterRequest): Observable<AuthResponse> {
+  return this.http.post<AuthResponse>(
+    `${this.apiUrl}/register`,
+    request
+  ).pipe(
+    tap(response => {
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('user', JSON.stringify(response));
+    })
+  );
+}
   // Logout
   logout(): void {
     localStorage.removeItem('token');
@@ -54,4 +68,5 @@ export class AuthService {
 
     return authResponse.roles.includes('Admin');
   }
+  
 }

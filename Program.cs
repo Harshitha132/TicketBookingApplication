@@ -1,11 +1,9 @@
 
-using System.Text;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-
+using System.Text;
 using TicketBookingApplication.Configurations;
 using TicketBookingApplication.Data;
 using TicketBookingApplication.Models;
@@ -13,11 +11,22 @@ using TicketBookingApplication.Repositories;
 using TicketBookingApplication.Repositories.Interfaces;
 using TicketBookingApplication.Services;
 using TicketBookingApplication.Services.Interfaces;
-
+using Scalar.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddControllers();
+// Configure CORS for Angular frontend
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AngularFrontend", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 builder.Services.AddOpenApi();
 
 // Configure JWT Settings
@@ -117,26 +126,132 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
+// 1. HTTPS Redirection
 app.UseHttpsRedirection();
 
-// JWT Authentication and Authorization
+// 2. Routing
+//app.UseRouting();
+
+// 3. Endpoint Metadata Diagnostics
+if (app.Environment.IsDevelopment())
+{
+    app.UseMiddleware<EndpointMetadataMiddleware>();
+}
+
+// 4. Authentication
+// Validates JWT and populates HttpContext.User
 app.UseAuthentication();
+
+// 5. Authentication and Authorization Diagnostics
+if (app.Environment.IsDevelopment())
+{
+    app.UseMiddleware<AuthenticationDiagnosticsMiddleware>();
+
+    app.UseMiddleware<AuthorizationDiagnosticsMiddleware>();
+}
+
+// 6. Authorization
+// Checks endpoint access permissions
 app.UseAuthorization();
 
+
+// ==========================================
+// 12. MAP CONTROLLERS
+// ==========================================
+
 app.MapControllers();
+
+
+// ==========================================
+// 13. RUN APPLICATION
+// ==========================================
+
+app.Run();
+
+
+// Seed Admin Role and Admin Account
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider
-        .GetRequiredService<ApplicationDbContext>();
+    var services = scope.ServiceProvider;
 
-    Console.WriteLine("\n--- IDENTITY TABLE CHECK ---");
+    var roleManager =
+        services.GetRequiredService<RoleManager<IdentityRole>>();
 
-    foreach (var entity in db.Model.GetEntityTypes())
+    var userManager =
+        services.GetRequiredService<UserManager<ApplicationUser>>();
+
+    var configuration =
+        services.GetRequiredService<IConfiguration>();
+
+    // Create Admin role if it does not exist
+    if (!await roleManager.RoleExistsAsync("Admin"))
     {
-        Console.WriteLine(
-            $"{entity.ClrType.Name} -> {entity.GetTableName()}");
+        var roleResult =
+            await roleManager.CreateAsync(new IdentityRole("Admin"));
+
+        if (!roleResult.Succeeded)
+        {
+            throw new InvalidOperationException(
+                "Failed to create Admin role: " +
+                string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+        }
+    }
+
+    // Read Admin credentials from User Secrets
+    var adminEmail =
+        configuration["AdminAccount:Email"];
+
+    var adminPassword =
+        configuration["AdminAccount:Password"];
+
+    if (string.IsNullOrWhiteSpace(adminEmail) ||
+        string.IsNullOrWhiteSpace(adminPassword))
+    {
+        throw new InvalidOperationException(
+            "Admin credentials are missing from User Secrets.");
+    }
+
+    // Find existing Admin account
+    var adminUser =
+        await userManager.FindByEmailAsync(adminEmail);
+
+    // Create Admin account if it does not exist
+    if (adminUser == null)
+    {
+        adminUser = new ApplicationUser
+        {
+            UserName = adminEmail,
+            Email = adminEmail,
+            FullName = "System Administrator",
+            EmailConfirmed = true
+        };
+
+        var createResult =
+            await userManager.CreateAsync(adminUser, adminPassword);
+
+        if (!createResult.Succeeded)
+        {
+            throw new InvalidOperationException(
+                "Failed to create Admin account: " +
+                string.Join(", ", createResult.Errors.Select(e => e.Description)));
+        }
+    }
+
+    // Assign Admin role
+    if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
+    {
+        var roleAssignmentResult =
+            await userManager.AddToRoleAsync(adminUser, "Admin");
+
+        if (!roleAssignmentResult.Succeeded)
+        {
+            throw new InvalidOperationException(
+                "Failed to assign Admin role: " +
+                string.Join(", ", roleAssignmentResult.Errors.Select(e => e.Description)));
+        }
     }
 }
 

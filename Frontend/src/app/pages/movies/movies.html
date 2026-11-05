@@ -1,0 +1,66 @@
+<section class="movies-page">
+
+  <div class="movies-header">
+    <p class="tagline">EXPLORE THE CINEMA</p>
+    <h1>Discover <span>Movies</span></h1>
+    <p>Find your next favourite movie and book your tickets.</p>
+  </div>
+
+  <div class="movie-search">
+  <input
+    type="text"
+    placeholder="Search movies by title..."
+    [(ngModel)]="searchText"
+    (keyup.enter)="searchMovies()"
+  >
+
+  <button (click)="searchMovies()">
+    Search
+  </button>
+</div>
+
+  <div class="section-heading">
+    <h2>Now Showing</h2>
+  </div>
+
+  @if (isLoading) {
+    <p class="empty-message">Loading movies...</p>
+  }
+  @else if (errorMessage) {
+    <p class="error-message">{{ errorMessage }}</p>
+  }
+  @else if (movies.length === 0) {
+    <p class="empty-message">No movies available.</p>
+  }
+  @else if (filteredMovies.length === 0) {
+  <p class="empty-message">No matching movies found.</p>
+}
+  @else {
+    <div class="movie-grid">
+     @for (movie of filteredMovies; track movie.movieId) {
+        <div class="movie-card">
+
+          <div class="movie-poster">
+            🎬
+          </div>
+
+          <div class="movie-details">
+            <h3>{{ movie.title }}</h3>
+
+            <p>{{ movie.description || 'No description available.' }}</p>
+
+            <div class="movie-info">
+              <span>{{ movie.genre }}</span>
+              <span>{{ movie.language }}</span>
+            </div>
+
+            <p>Duration: {{ movie.durationMinutes }} minutes</p>
+            <p>Release Date: {{ movie.releaseDate }}</p>
+          </div>
+
+        </div>
+      }
+    </div>
+  }
+
+</section>

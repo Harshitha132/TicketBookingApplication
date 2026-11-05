@@ -1,0 +1,128 @@
+.movies-page {
+  min-height: 85vh;
+  padding: 60px 7%;
+  background: #101322;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+.movies-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.tagline {
+  color: #f5b400;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 3px;
+}
+
+.movies-header h1 {
+  font-size: 42px;
+  margin: 15px 0;
+}
+
+.movies-header h1 span {
+  color: #f5b400;
+}
+
+.movies-header p:last-child {
+  color: #c5c8d3;
+  font-size: 16px;
+}
+
+.movie-search {
+  display: flex;
+  max-width: 600px;
+  margin: 0 auto 55px;
+  gap: 10px;
+}
+
+.movie-search input {
+  flex: 1;
+  padding: 14px;
+  border: 1px solid #41475b;
+  border-radius: 6px;
+  background: #202943;
+  color: white;
+  font-size: 15px;
+}
+
+.movie-search button {
+  padding: 14px 25px;
+  border: none;
+  border-radius: 6px;
+  background: #f5b400;
+  color: #101322;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.section-heading h2 {
+  font-size: 26px;
+  border-left: 4px solid #f5b400;
+  padding-left: 12px;
+}
+
+.movie-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+  margin-top: 25px;
+  padding: 20px 0;
+}
+.movie-card {
+  background: #202943;
+  border: 1px solid #343d56;
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.movie-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.movie-poster {
+  height: 180px;
+  background: linear-gradient(135deg, #343d56, #101322);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 55px;
+  border-radius: 8px;
+  margin-bottom: 18px;
+}
+
+.movie-details h3 {
+  font-size: 23px;
+  color: #f5b400;
+  margin-bottom: 12px;
+}
+
+.movie-details p {
+  color: #c5c8d3;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.movie-info {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.movie-info span {
+  background: #343d56;
+  color: #f5b400;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.empty-message {
+  color: #c5c8d3;
+}
